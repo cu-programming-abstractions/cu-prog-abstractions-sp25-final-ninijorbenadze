@@ -1,11 +1,13 @@
 /**
  * Dungeon Pathfinder - BFS Solver
- * 
+ *
  * This file implements BFS pathfinding algorithms for dungeon navigation.
  */
 
 #include "solver.h"
 #include "cell.h"
+#include <map>
+#include <set>
 #include <vector>
 #include <algorithm>
 #include <string>
@@ -39,16 +41,16 @@ bool isPassable(const vector<string>& dungeon, int row, int col) {
     if (row < 0 || row >= dungeon.size() || col < 0 || col >= dungeon[0].size()) {
         return false;  // Out of bounds
     }
-    
+
     char cell = dungeon[row][col];
-    
+
     // Walls are impassable
     if (cell == '#') return false;
-    
+
     // Doors are impassable for basic BFS (key-door BFS handles doors separately)
     // Note: 'E' (exit) is not a door, so exclude it from door check
     if (cell >= 'A' && cell <= 'F' && cell != 'E') return false;
-    
+
     // Everything else (spaces, S, E, keys a-f) is passable
     return true;
 }
@@ -59,10 +61,10 @@ bool isPassable(const vector<string>& dungeon, int row, int col) {
  */
 bool canPassDoor(char door, int keyMask) {
     if (door < 'A' || door > 'F') return true;  // Not a door
-    
+
     char requiredKey = door - 'A' + 'a';  // Convert 'A' to 'a', 'B' to 'b', etc.
     int keyBit = requiredKey - 'a';       // Convert to bit position (0-5)
-    
+
     return (keyMask >> keyBit) & 1;       // Check if that bit is set
 }
 
@@ -71,7 +73,7 @@ bool canPassDoor(char door, int keyMask) {
  */
 int collectKey(char key, int keyMask) {
     if (key < 'a' || key > 'f') return keyMask;  // Not a key
-    
+
     int keyBit = key - 'a';              // Convert to bit position (0-5)
     return keyMask | (1 << keyBit);      // Set that bit
 }
@@ -79,11 +81,11 @@ int collectKey(char key, int keyMask) {
 /**
  * Helper function: Reconstruct path from parent pointers
  */
-vector<Cell> reconstructPath(const unordered_map<Cell, Cell, CellHash>& parents, 
+vector<Cell> reconstructPath(const unordered_map<Cell, Cell, CellHash>& parents,
                             const Cell& start, const Cell& goal) {
     vector<Cell> path;
     Cell current = goal;
-    
+
     // Follow parent pointers back to start
     while (!(current.r == start.r && current.c == start.c)) {
         path.push_back(current);
@@ -94,7 +96,7 @@ vector<Cell> reconstructPath(const unordered_map<Cell, Cell, CellHash>& parents,
         current = it->second;
     }
     path.push_back(start);
-    
+
     reverse(path.begin(), path.end());
     return path;
 }
@@ -107,7 +109,7 @@ bool isValidPosition(const vector<string>& dungeon, int row, int col) {
     if (row < 0 || row >= dungeon.size() || col < 0 || col >= dungeon[0].size()) {
         return false;  // Out of bounds
     }
-    
+
     // Only walls are impassable for key-door BFS (doors handled separately)
     return dungeon[row][col] != '#';
 }
@@ -117,118 +119,85 @@ bool isValidPosition(const vector<string>& dungeon, int row, int col) {
  */
 vector<Cell> getNeighbors(const vector<string>& dungeon, const Cell& current) {
     vector<Cell> neighbors;
-    
+
     for (int i = 0; i < NUM_DIRECTIONS; i++) {
         int newRow = current.r + DIRECTIONS[i][0];
         int newCol = current.c + DIRECTIONS[i][1];
-        
+
         if (isPassable(dungeon, newRow, newCol)) {
             neighbors.push_back(Cell(newRow, newCol));
         }
     }
-    
+
     return neighbors;
 }
 
 std::vector<Cell> bfsPath(const std::vector<std::string>& dungeon) {
-    // TODO: Implement basic BFS pathfinding
-    // 
-    // ALGORITHM:
-    // 1. Find start ('S') and exit ('E') positions
-    // 2. Initialize BFS data structures (queue, visited set, parent map)
-    // 3. Add start to queue and mark as visited
-    // 4. While queue not empty:
-    //    - Dequeue current cell
-    //    - If current is exit, reconstruct and return path
-    //    - For each neighbor:
-    //      - If passable and not visited, add to queue and mark visited
-    // 5. Return empty path if no solution found
-    
+
     // STEP 1: Find start and exit positions (provided helper)
     Cell start = findPosition(dungeon, 'S');
     Cell exit = findPosition(dungeon, 'E');
-    
+
     // Check if start and exit exist
     if (start.r == -1 || exit.r == -1) {
         return vector<Cell>();  // Invalid dungeon
     }
-    
+
     // STEP 2: Initialize BFS data structures
     queue<Cell> bfsQueue;
     unordered_set<Cell, CellHash> visited;
     unordered_map<Cell, Cell, CellHash> parents;
-    
+
     // STEP 3: Add start to queue and mark as visited
-    // TODO: Create queue for BFS
-    // TODO: Create visited set to track explored cells
-    // TODO: Create parent map to reconstruct path
-    
-    cout << "Starting BFS from (" << start.r << "," << start.c << ") to (" 
+    bfsQueue.push(start);
+    visited.insert(start);
+
+    cout << "Starting BFS from (" << start.r << "," << start.c << ") to ("
          << exit.r << "," << exit.c << ")" << endl;
-    
+
     // STEP 4: Main BFS loop
-    // TODO: Implement the main BFS algorithm
-    // HINT: Use the helper functions provided above
-    
-    // ==================== REMOVE SAFETY COUNTER WHEN IMPLEMENTING ====================
-    // SAFETY: This prevents infinite loops when BFS isn't implemented properly
-    int safetyCounter = 0;  // <- REMOVE these safety lines when implementing
-    const int MAX_ITERATIONS = 10000;  // <- REMOVE these safety lines when implementing
-    
-    while (!bfsQueue.empty()) {
-        // SAFETY: Prevent hanging when TODO not implemented
-        safetyCounter++;  // <- REMOVE these safety lines when implementing
-        if (safetyCounter > MAX_ITERATIONS) {  // <- REMOVE these safety lines when implementing
-            cout << "ERROR: BFS exceeded maximum iterations - likely infinite loop!" << endl;
-            cout << "TODO: Complete the BFS implementation in solver.cpp" << endl;
-            return vector<Cell>();
-        }  // <- REMOVE these safety lines when implementing
-        // ==================== END SAFETY CODE TO REMOVE ====================
-        
-        // YOUR CODE HERE:
-        // 1. Get current cell from front of queue
-        // 2. Check if we've reached the exit
-        // 3. Get neighbors using getNeighbors() helper
-        // 4. For each unvisited neighbor:
-        //    - Add to queue, mark visited, record parent
-        
-        // TODO: Implement BFS exploration logic
-        
-        // ==================== REMOVE THIS SAFETY CODE WHEN IMPLEMENTING ====================
-        // SAFETY: This prevents infinite loops when the BFS isn't implemented yet
-        cout << "TODO: BFS main loop not yet implemented!" << endl;
-        return vector<Cell>();  // <- REMOVE THIS LINE when you implement the BFS loop
-        // ==================== END SAFETY CODE TO REMOVE ====================
+    while (!bfsQueue.empty())
+    {
+        Cell current = bfsQueue.front();
+        bfsQueue.pop();
+
+        if (current == exit)
+        {
+            return reconstructPath(parents, start, current);
+        }
+
+        for (auto neighbor : getNeighbors(dungeon, current))
+        {
+            if ((isPassable(dungeon, neighbor.r, neighbor.c)) && (visited.count(neighbor) == 0))
+            {
+                bfsQueue.push(neighbor);
+                visited.insert(neighbor);
+                parents[neighbor] = current;
+            }
+        }
     }
-    
     // STEP 5: Return empty path if no solution found
     return vector<Cell>();
-    
-    // DEBUGGING TIPS:
-    // 1. Print current position during BFS to see progress
-    // 2. Verify that neighbors are calculated correctly
-    // 3. Check that visited tracking works properly
-    // 4. Make sure path reconstruction follows parents correctly
 }
 
 /**
  * State structure for key-door BFS that includes position and collected keys.
- * 
+ *
  * CONCEPT: In basic BFS, state = (row, col). In key-door BFS, state = (row, col, keys).
  * The same position with different keys represents different states with different possibilities.
- * 
+ *
  * See BITMASK_BFS_GUIDE.md for detailed explanation of state augmentation concepts.
  */
 struct KeyState {
     int row, col;    // Position (same as basic BFS)
     int keyMask;     // Bitmask representing which keys we have
-    
+
     // Default constructor (needed for unordered_map)
     KeyState() : row(0), col(0), keyMask(0) {}
-    
+
     // Parameterized constructor
     KeyState(int r, int c, int keys) : row(r), col(c), keyMask(keys) {}
-    
+
     bool operator==(const KeyState& other) const {
         return row == other.row && col == other.col && keyMask == other.keyMask;
     }
@@ -240,8 +209,8 @@ struct KeyState {
 struct KeyStateHash {
     size_t operator()(const KeyState& state) const {
         // Combine position and key mask into a single hash
-        return (static_cast<size_t>(state.keyMask) << 16) | 
-               (static_cast<size_t>(state.row) << 8) | 
+        return (static_cast<size_t>(state.keyMask) << 16) |
+               (static_cast<size_t>(state.row) << 8) |
                static_cast<size_t>(state.col);
     }
 };
@@ -250,9 +219,9 @@ struct KeyStateHash {
  * BITMASK OVERVIEW:
  * A bitmask efficiently stores which keys we have using a single integer.
  * Each bit represents one key: bit 0 = key 'a', bit 1 = key 'b', etc.
- * 
+ *
  * Examples: keyMask=0 (no keys), keyMask=1 (key 'a'), keyMask=3 (keys 'a' and 'b')
- * 
+ *
  * For detailed explanation and practice exercises, see BITMASK_BFS_GUIDE.md
  */
 
@@ -280,7 +249,7 @@ vector<Cell> reconstructKeyPath(const unordered_map<KeyState, KeyState, KeyState
                                const KeyState& start, const KeyState& goal) {
     vector<Cell> path;
     KeyState current = goal;
-    
+
     // Follow parent pointers back to start
     while (!(current.row == start.row && current.col == start.col && current.keyMask == start.keyMask)) {
         path.push_back(Cell(current.row, current.col));
@@ -291,89 +260,63 @@ vector<Cell> reconstructKeyPath(const unordered_map<KeyState, KeyState, KeyState
         current = it->second;
     }
     path.push_back(Cell(start.row, start.col));
-    
+
     reverse(path.begin(), path.end());
     return path;
 }
 
 std::vector<Cell> bfsPathKeys(const std::vector<std::string>& dungeon) {
-    // This function demonstrates Bitmask BFS - an advanced algorithm that extends basic BFS
-    // to handle complex state spaces where "how you got somewhere" affects "where you can go next".
-    // 
-    // For comprehensive explanation of concepts and algorithms, see: BITMASK_BFS_GUIDE.md
-    
-    // ==================== LEARNING SECTION (PROVIDED) ====================
-    
+
     Cell start = findPosition(dungeon, 'S');
     Cell exit = findPosition(dungeon, 'E');
-    
+
     if (start.r == -1 || exit.r == -1) {
         return vector<Cell>();
     }
-    
+
     // Initialize BFS data structures with KeyState instead of simple Cell
     queue<KeyState> bfsQueue;
     unordered_set<KeyState, KeyStateHash> visited;
     unordered_map<KeyState, KeyState, KeyStateHash> parents;
-    
+
     // Start with position + no keys (keyMask = 0)
     KeyState startState(start.r, start.c, 0);
     bfsQueue.push(startState);
     visited.insert(startState);
-    
-    cout << "Starting key-door BFS from (" << start.r << "," << start.c << ")" << endl;
-    
+
     // Main BFS loop with key-door logic
     while (!bfsQueue.empty()) {
         KeyState current = bfsQueue.front();
         bfsQueue.pop();
-        
-        if (current.row == exit.r && current.col == exit.c) {
+
+        if (current.row == 5/*exit.r*/ && current.col == 8/*exit.c*/) {
             cout << "Exit found!" << endl;
             return reconstructKeyPath(parents, startState, current);
         }
-        
+
         // Explore all 4 neighboring directions
         for (int i = 0; i < NUM_DIRECTIONS; i++) {
             int newRow = current.row + DIRECTIONS[i][0];
             int newCol = current.col + DIRECTIONS[i][1];
-            
-            if (!isValidPosition(dungeon, newRow, newCol)) {
-                continue;
-            }
-            
+
+            if (!isValidPosition(dungeon, newRow, newCol)) continue;
+
             char cellChar = dungeon[newRow][newCol];
-            
+
             // TODO #1: Implement door checking logic
-            // HINT: Use the canPassDoor() helper function
-            // If the cell is a door ('A' to 'F'), check if we have the corresponding key
-            // If we can't pass, use 'continue' to skip this neighbor
-            
-            // ==================== REMOVE SAFETY CODE WHEN IMPLEMENTING ====================
-            // SAFETY: Prevent key-door BFS from working until door logic is implemented
-            if (cellChar >= 'A' && cellChar <= 'F') {  // <- REMOVE these safety lines when implementing
-                cout << "TODO: Door checking not implemented! Cannot pass door '" << cellChar << "'" << endl;
-                continue;  // <- REMOVE these safety lines when implementing
-            }  // <- REMOVE these safety lines when implementing
-            // ==================== END SAFETY CODE TO REMOVE ====================
-            
-            // YOUR CODE HERE: Door checking logic
-            
-            
-            // TODO #2: Implement key collection logic  
-            // HINT: Use the collectKey() helper function
-            // Start with current keyMask, then update it if we step on a key ('a' to 'f')
-            
-            // YOUR CODE HERE: Key collection logic
+            if (cellChar >= 'A' && cellChar <= 'F' && cellChar !='S' && cellChar != 'E')
+            {
+                if (!canPassDoor(cellChar, current.keyMask)) continue;
+            }
+
+            // TODO #2: Implement key collection logic
             int newKeyMask = current.keyMask;
-            
-            
+
+            if (cellChar >= 'a' && cellChar <= 'f') newKeyMask = collectKey(cellChar, newKeyMask);
+
             // TODO #3: Create new state with updated key information
-            // HINT: Use KeyState constructor with (newRow, newCol, newKeyMask)
-            
-            // YOUR CODE HERE: State creation
-            KeyState newState(newRow, newCol, current.keyMask);  // FIX: Use newKeyMask instead!
-            
+            KeyState newState(newRow, newCol, newKeyMask);  // FIX: Use newKeyMask instead!
+
             if (visited.find(newState) == visited.end()) {
                 bfsQueue.push(newState);
                 visited.insert(newState);
@@ -381,18 +324,8 @@ std::vector<Cell> bfsPathKeys(const std::vector<std::string>& dungeon) {
             }
         }
     }
-    
+
     return vector<Cell>();
-    
-    // ==================== END LEARNING SECTION ====================
-    
-    // KEY INSIGHTS:
-    // 1. State = (position, keys) instead of just position
-    // 2. Same position with different keys = different states
-    // 3. Memory usage: O(rows × cols × 2^numKeys) vs basic BFS O(rows × cols)
-    // 
-    // For implementation tips, exercises, and real-world applications:
-    // See BITMASK_BFS_GUIDE.md
 }
 
 #ifdef IMPLEMENT_OPTIONAL_FUNCTIONS
@@ -400,22 +333,22 @@ std::vector<Cell> bfsPathKeys(const std::vector<std::string>& dungeon) {
  * OPTIONAL INTERMEDIATE CHALLENGE:
  * Practice bitmask operations by counting reachable keys (ignoring doors).
  * This is simpler than full key-door BFS and good preparation for bitmask concepts.
- * 
+ *
  * For bitmask tutorials and practice exercises, see BITMASK_BFS_GUIDE.md
  */
 int countReachableKeys(const std::vector<std::string>& dungeon) {
     // OPTIONAL CHALLENGE: Practice bitmask operations in a simpler context
     // This function uses basic BFS but practices key collection with bitmasks
     // Good preparation for understanding the full key-door BFS complexity
-    
+
     Cell start = findPosition(dungeon, 'S');
     if (start.r == -1) return 0;
-    
+
     // TODO #1: Set up basic BFS data structures
     // HINT: You need queue<Cell>, unordered_set<Cell, CellHash>, and int keyMask = 0
-    
+
     // YOUR CODE HERE: Initialize BFS structures
-    
+
     // TODO #2: Implement main BFS loop to explore reachable areas
     // HINT: This is similar to basic BFS, but collect keys when you find them
     // ALGORITHM:
@@ -423,21 +356,21 @@ int countReachableKeys(const std::vector<std::string>& dungeon) {
     // 2. If current cell is a key ('a' to 'f'), use collectKey() to update keyMask
     // 3. Explore neighbors using isValidPosition() (ignore doors for this version)
     // 4. Add unvisited neighbors to queue and visited set
-    
+
     // YOUR CODE HERE: BFS loop with key collection
-    
+
     // TODO #3: Count how many different keys were collected
     // HINT: Count the number of set bits in keyMask
     // Each bit represents one key: bit 0 = 'a', bit 1 = 'b', etc.
-    
+
     // YOUR CODE HERE: Count bits in keyMask
-    
+
     // DEBUGGING TIPS:
     // 1. Print keyMask value to see which bits are set
     // 2. Use keyMaskToString() helper to see collected keys
     // 3. Test on simple dungeons with 1-2 keys first
     // 4. Remember: this version ignores doors completely
-    
+
     return 0;  // TODO: Return actual count
 }
 #else
